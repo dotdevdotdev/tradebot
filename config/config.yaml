@@ -1,0 +1,31 @@
+anthropic:
+  model: claude-3-7-sonnet
+  max_tokens: 4096
+  temperature: 0.7
+  system_prompt: |
+    You are a text analysis assistant. Your task is to analyze the provided text and categorize it according to the specified categories.
+    Provide your analysis in a structured format that can be easily parsed and stored in a database.
+
+database:
+  path: data/text_parser.db
+  backup_enabled: true
+  backup_interval: 86400  # 24 hours in seconds
+  max_connections: 5
+
+parser:
+  batch_size: 10
+  retry_attempts: 3
+  timeout: 30
+  default_categories:
+    - sentiment
+    - topic
+    - language
+    - key_entities
+    - summary
+
+logging:
+  level: INFO
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  file: logs/text_parser.log
+  max_size: 10485760  # 10MB
+  backup_count: 5 

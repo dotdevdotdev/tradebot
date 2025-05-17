@@ -1,0 +1,34 @@
+Item types:
+Large crate = 300 bulk items
+Small crate = 150 bulk items
+Single items = Can be mailed across servers without need for wagoner or boat transport
+
+Server tags:
+(Har) or (Mel) or (Cad) represent which server the player is on, and should be tracked for every message entry as some items have restrictions for trading across servers.
+(Har) = Harmony
+(Mel) = Melody
+(Cad) = Cadence
+
+Money:
+Silver is the primary currency, along with copper, iron, and gold. Most items are sold in quantities of silver.
+1 gold = 100 silver
+1 silver = 100 copper
+1 copper = 100 iron
+
+Misc notes:
+Messages with [null] simply refers to a now non-existing item name links. If the item name is not also written in the message, these must be discarded as unknown item.
+
+Animals/Traits:
+Horses and other animals are often referred to by the number of beneficial traits of various types they posess. For example: 4s Horse represents a 4-speed horse. 4d Bison represents a 4-draft Bison.
+
+Quality Levels:
+QL or "quality level" can range from 1-100, the higher being worth more and is often included in the item link or the trade message.
+
+Rarity:
+Items can be common, rare, supreme, fantastic, which increase the item's price and provide a special bonus. The rarity of an item can be assumed to be common unless otherwise stated.
+
+Item names:
+Item names may be written in plain text or in item name links such as [common metal awl fragment [1/3] QL:91.0013 DMG:3.61006 WT:0.133 ] where the rarity is "common" the name is "metal awl fragment [1/3]" and the quality level is 91.0013.
+
+Timestamp:
+Timestamps are in MST and should have the timestamp adjusted to GMT when added to the database.
