@@ -1,1 +1,1 @@
-"""Trade data parsing module.""" 
+"""Trade parser module for Wurm Online trade data.""" 

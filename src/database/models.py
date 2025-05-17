@@ -14,7 +14,7 @@ class TextAnalysis(Base):
     categories = Column(JSON, nullable=False)  # Stores the categorization results
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    metadata = Column(JSON, nullable=True)  # Additional metadata about the analysis
+    analysis_metadata = Column(JSON, nullable=True)  # Additional metadata about the analysis
 
     def __repr__(self):
         return f"<TextAnalysis(id={self.id}, created_at={self.created_at})>"
@@ -25,7 +25,7 @@ class TextAnalysis(Base):
         return cls(
             text_content=text,
             categories=categories,
-            metadata=metadata or {}
+            analysis_metadata=metadata or {}
         )
 
     def to_dict(self) -> Dict:
@@ -36,5 +36,5 @@ class TextAnalysis(Base):
             "categories": self.categories,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
-            "metadata": self.metadata
+            "metadata": self.analysis_metadata
         } 

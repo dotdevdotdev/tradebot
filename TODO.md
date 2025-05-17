@@ -1,0 +1,4 @@
+- improve the recognition and defitions instructions
+    - need enchanting abbrev.
+- remove datetime objects and use plain strings for time (no dates)
+- parsing is 1/2 decent for proof of concept, but needs some serious prompting work to be consistant (better chain of events with manager loop should resolve this, or perhaps pre-parsing runs)
