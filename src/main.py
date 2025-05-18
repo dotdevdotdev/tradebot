@@ -28,36 +28,39 @@ def process_file(file_path: Path, date: Optional[datetime] = None) -> None:
     claude = ClaudeClient()
     prompt_template = read_prompt_template()
     
+    print(f"Reading file: {file_path}")
     with open(file_path, "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip()]
     
+    print(f"Found {len(lines)} lines to process")
     # Chunk the data into reasonable sizes
     chunks = chunk_data(lines, chunk_size=10)
+    print(f"Split into {len(chunks)} chunks")
     
-    for chunk in chunks:
+    for i, chunk in enumerate(chunks):
+        print(f"\nProcessing chunk {i+1}/{len(chunks)}")
         # Parse each line in the chunk
         trade_data_list = []
         for line in chunk:
             trade_data = parser.parse_line(line)
-            print(trade_data)
-            # if trade_data:
-            #     # Add date to timestamp if not present
-            #     if date and not isinstance(trade_data["timestamp"], datetime):
-            #         trade_data["timestamp"] = datetime.combine(
-            #             date.date(), trade_data["timestamp"].time()
-            #         )
-            #     trade_data_list.append(trade_data)
+            if trade_data:
+                trade_data_list.append(trade_data)
         
         if not trade_data_list:
+            print("No valid trades found in chunk, skipping")
             continue
         
+        print(f"Found {len(trade_data_list)} valid trades in chunk")
         # Format prompt with the chunk of trade data
         prompt = format_prompt(prompt_template, {"trades": trade_data_list})
+        print("Sending to Claude for processing...")
         llm_response = claude.complete(prompt)
+        print("Received response from Claude")
         
         # Parse CSV response
         try:
             structured_data = parse_csv_response(llm_response)
+            print(f"Successfully parsed {len(structured_data)} trades from CSV")
         except Exception as e:
             print(f"Failed to parse CSV from LLM: {llm_response}\nError: {e}")
             continue
@@ -65,6 +68,7 @@ def process_file(file_path: Path, date: Optional[datetime] = None) -> None:
         # Store structured data in database
         for data in structured_data:
             add_trade(data)
+        print(f"Stored {len(structured_data)} trades in database")
 
 
 def main() -> None:

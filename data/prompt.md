@@ -12,7 +12,7 @@ The input data will be in the following format:
 ## Key Elements to Extract
 
 ### Basic Trade Information
-- Timestamp (convert from MST to GMT)
+- Timestamp (HH:MM:SS format)
 - Player Name
 - Server (Har=Harmony, Mel=Melody, Cad=Cadence)
 - Trade Type (WTS, WTB, WTT, PC)
@@ -35,7 +35,7 @@ Look for and extract:
 - Other special attributes
 
 ## Rules
-1. Convert all timestamps from MST to GMT
+1. Keep timestamps in HH:MM:SS format
 2. Remove brackets from item names
 3. Normalize server names to full names
 4. Extract prices and convert to standard currency (silver)
@@ -46,7 +46,8 @@ Look for and extract:
 9. Handle item fragments (e.g., [1/3])
 
 ## Output Format
-Provide the extracted information in a structured format that can be easily inserted into the database tables defined in database-structure.md.
+Provide the extracted information in CSV format with the following columns:
+timestamp,player_name,server,trade_type,message,item_name,rarity,quality_level,weight,damage,price_amount,price_currency,attributes
 
 ## Example
 Input:
@@ -55,23 +56,7 @@ Input:
 ```
 
 Output:
-```json
-{
-  "trade": {
-    "timestamp": "2025-05-01 07:19:24",
-    "server": "Cadence",
-    "player_name": "Valentyan",
-    "trade_type": "WTB",
-    "message": "WTB 100+C skiller pickaxe (grinding prospecting)"
-  },
-  "items": [{
-    "name": "pickaxe",
-    "rarity": "common",
-    "quality_level": 100.0,
-    "attributes": [{
-      "name": "CoC",
-      "value": "100+"
-    }]
-  }]
-}
+```
+timestamp,player_name,server,trade_type,message,item_name,rarity,quality_level,weight,damage,price_amount,price_currency,attributes
+00:19:24,Valentyan,Cadence,WTB,WTB 100+C skiller pickaxe (grinding prospecting),pickaxe,common,100.0,,,CoC:100+
 ```

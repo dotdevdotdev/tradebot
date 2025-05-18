@@ -1,5 +1,4 @@
 import re
-from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
 class TradeParser:
@@ -18,12 +17,6 @@ class TradeParser:
 
         timestamp, player_name, server, trade_type, message = match.groups()
         
-        # Parse timestamp
-        try:
-            timestamp = datetime.strptime(timestamp, "%H:%M:%S")
-        except ValueError:
-            return None
-
         # Parse items and price
         items = self._parse_items(message)
         price_amount, price_currency = self._parse_price(message)

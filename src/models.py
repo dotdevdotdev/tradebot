@@ -41,7 +41,7 @@ class Trade(Base):
     __tablename__ = "trades"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    timestamp: Mapped[datetime] = mapped_column(DateTime)
+    timestamp: Mapped[str] = mapped_column(String(8))  # HH:MM:SS format
     server: Mapped[Server] = mapped_column(SQLEnum(Server))
     player_name: Mapped[str] = mapped_column(String(100))
     trade_type: Mapped[TradeType] = mapped_column(SQLEnum(TradeType))

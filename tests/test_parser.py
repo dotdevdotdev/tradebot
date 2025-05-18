@@ -12,8 +12,9 @@ def test_parse_line():
     result = parser.parse_line(line)
     
     assert result is not None
+    assert result["timestamp"] == "00:19:24"  # Check for string timestamp
     assert result["player_name"] == "Valentyan"
-    assert result["server"] == "Cadence"
+    assert result["server"] == "Cad"
     assert result["trade_type"] == "WTB"
     
     # Test system message
