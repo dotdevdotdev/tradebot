@@ -2,73 +2,83 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, List
-import csv
-import io
 
 from src.database.database import init_db, get_db, add_trade
-from src.parser.parser import TradeParser
-from src.llm.claude_client import ClaudeClient
-from src.llm.prompt_utils import read_prompt_template, format_prompt
+from src.parser.trade_parser import TradeParser, FilterMode
 
 
-def chunk_data(data: List[str], chunk_size: int = 10) -> List[List[str]]:
-    """Split data into chunks of specified size."""
-    return [data[i:i + chunk_size] for i in range(0, len(data), chunk_size)]
-
-
-def parse_csv_response(csv_text: str) -> List[dict]:
-    """Parse a multi-line CSV response into a list of dictionaries."""
-    reader = csv.DictReader(io.StringIO(csv_text.strip()))
-    return list(reader)
-
-
-def process_file(file_path: Path, date: Optional[datetime] = None) -> None:
+def process_file(file_path: Path, date: Optional[datetime] = None, filter_mode: FilterMode = FilterMode.ALL) -> None:
     """Process a trade log file and store the data in the database."""
-    parser = TradeParser()
-    claude = ClaudeClient()
-    prompt_template = read_prompt_template()
+    parser = TradeParser(filter_mode=filter_mode)
     
-    print(f"Reading file: {file_path}")
+    print(f"📂 Reading {file_path}")
+    print(f"🔍 Filter mode: {filter_mode.value}")
+    
     with open(file_path, "r", encoding="utf-8") as f:
         lines = [line.strip() for line in f if line.strip()]
     
-    print(f"Found {len(lines)} lines to process")
-    # Chunk the data into reasonable sizes
-    chunks = chunk_data(lines, chunk_size=10)
-    print(f"Split into {len(chunks)} chunks")
+    total_lines = len(lines)
+    print(f"📊 Found {total_lines} lines")
     
-    for i, chunk in enumerate(chunks):
-        print(f"\nProcessing chunk {i+1}/{len(chunks)}")
-        # Parse each line in the chunk
-        trade_data_list = []
-        for line in chunk:
-            trade_data = parser.parse_line(line)
-            if trade_data:
-                trade_data_list.append(trade_data)
+    trades_processed = 0
+    trades_stored = 0
+    errors = 0
+    
+    for i, line in enumerate(lines, 1):
+        if i % 100 == 0:
+            print(f"🔄 Processing line {i}/{total_lines}")
         
-        if not trade_data_list:
-            print("No valid trades found in chunk, skipping")
-            continue
-        
-        print(f"Found {len(trade_data_list)} valid trades in chunk")
-        # Format prompt with the chunk of trade data
-        prompt = format_prompt(prompt_template, {"trades": trade_data_list})
-        print("Sending to Claude for processing...")
-        llm_response = claude.complete(prompt)
-        print("Received response from Claude")
-        
-        # Parse CSV response
         try:
-            structured_data = parse_csv_response(llm_response)
-            print(f"Successfully parsed {len(structured_data)} trades from CSV")
+            trade = parser.parse_line(line)
+            if trade:
+                trades_processed += 1
+                trade_dict = parser.to_dict(trade)
+                add_trade(trade_dict)
+                trades_stored += 1
+                
+                # Log the processed trade
+                print(f"\n📝 Trade #{trades_processed}:")
+                print(f"   ⏰ {trade.timestamp}")
+                print(f"   👤 {trade.player_name} ({trade.server})")
+                print(f"   🏷️  {trade.trade_type.value}")
+                
+                if trade.items:
+                    print("   📦 Items:")
+                    for item in trade.items:
+                        item_str = f"      • {item.name}"
+                        if item.rarity != "common":
+                            item_str += f" [{item.rarity}]"
+                        if item.quality_level:
+                            item_str += f" QL:{item.quality_level}"
+                        if item.damage:
+                            item_str += f" DMG:{item.damage}"
+                        if item.weight:
+                            item_str += f" WT:{item.weight}"
+                        if item.fragment:
+                            item_str += f" {item.fragment}"
+                        print(item_str)
+                        if item.attributes:
+                            for attr in item.attributes:
+                                print(f"        - {attr.name}: {attr.value}")
+                
+                if trade.price_amount and trade.price_currency:
+                    print(f"   💰 Price: {trade.price_amount} {trade.price_currency.value}")
+                
+                print("   📄 Message:", trade.message)
+                print("   " + "─" * 50)
+                
         except Exception as e:
-            print(f"Failed to parse CSV from LLM: {llm_response}\nError: {e}")
+            errors += 1
+            print(f"❌ Error on line {i}: {str(e)}")
             continue
-        
-        # Store structured data in database
-        for data in structured_data:
-            add_trade(data)
-        print(f"Stored {len(structured_data)} trades in database")
+    
+    # Print summary
+    print("\n=== Summary ===")
+    print(f"📊 Total lines: {total_lines}")
+    print(f"📝 Trades processed: {trades_processed}")
+    print(f"💾 Trades stored: {trades_stored}")
+    print(f"❌ Errors: {errors}")
+    print("==============\n")
 
 
 def main() -> None:
@@ -80,13 +90,20 @@ def main() -> None:
         type=lambda s: datetime.strptime(s, "%Y-%m-%d"),
         help="Date of the log file (YYYY-MM-DD)",
     )
+    parser.add_argument(
+        "--filter",
+        type=str,
+        choices=[mode.value for mode in FilterMode],
+        default=FilterMode.ALL.value,
+        help="Filter mode: all, items_only, or no_items"
+    )
     args = parser.parse_args()
 
     # Initialize database
     init_db()
 
     # Process file
-    process_file(args.file, args.date)
+    process_file(args.file, args.date, FilterMode(args.filter))
 
 
 if __name__ == "__main__":
